@@ -1,0 +1,98 @@
+<isinclude template="/components/modules" sf-toolkit="off" />
+<isset name="redirectSettings" value="${require('*/cartridge/scripts/util/nuveiHelperHosted').getRedirectSettings()}" scope="page" />
+
+<div class="form-group nuvei-form-content" id="nuvei-group"
+    data-getdata-url="${redirectSettings.getDataUrl}"
+    data-mode="${redirectSettings.mode}">
+    <isif condition="${redirectSettings.mode==='Hosted Page'}">
+        <isif condition="${redirectSettings.type==='iFrame'}">
+            <isprint value="${Resource.msg('msg.payment.submitpayment', 'nuvei', null)}" encoding="htmlcontent" />
+        <iselseif condition="${redirectSettings.type==='redirect'}" />
+            <isprint value="${Resource.msg('msg.payment.redirect', 'nuvei', null)}" encoding="htmlcontent" />
+        </isif>
+    <iselseif condition="${redirectSettings.mode === 'Direct'}" />
+        <div class="js-nuvei-fields"
+                data-environment="${pdict.nuveiEnvironment}"
+                data-merchant-id="${pdict.nuveiMerchantId}"
+                data-merchant-site-id="${pdict.nuveiMerchantSiteId}"
+                data-session-token="${pdict.nuveiSessionToken}"
+                data-payment-not-valid="${Resource.msg('error.payment.not.valid', 'checkout', null)}"
+                data-order-open-url="${URLUtils.url('Nuvei-OrderOpen')}">
+            <div class="js-nuvei-payment-methods">
+                <div class="form-check js-nuvei-credit-card">
+                    <div class="form-group">
+                        <input type="radio"
+                            name="${pdict.CurrentForms.billing.nuveiFields.paymentOption.getHtmlName()}"
+                            id="card-form"
+                            value="cc_card"
+                            class="form-check-input"
+                            checked='checked' />
+                        <label  for="card-form" class="form-check-label">
+                            ${Resource.msg('title.payment.creditcard', 'nuvei', null)}
+                        </label>
+                    </div>
+
+                    <isif condition="${pdict.customer.registeredUser}">
+                        <div class="user-payment-instruments container ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}">
+                            <!--- Stored user payments --->
+                            <div class="stored-payments-nuvei">
+                                <isinclude template="checkout/billing/storedPaymentInstruments" />
+                            </div>
+
+                            <!--- Add new credit card button --->
+                            <div class="row">
+                                <button class="btn btn-block add-payment btn-outline-primary" type="button">${Resource.msg('button.add.payment', 'checkout', null)}</button>
+                            </div>
+                        </div>
+                    </isif>
+                    <fieldset class="credit-card-form ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? 'checkout-hidden' : ''}">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group required">
+                                <label class="form-control-label" for="cardHolderName"><span>${Resource.msg('field.credit.card.holdername', 'creditCard', null)}</span></label>
+                                <input type="text" class="form-control js-nuvei-holder-name" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group required">
+                                <label class="form-control-label" for="card-number"  data-tid="scwsdk.form.card_number_label">${Resource.msg('field.credit.card.number', 'creditCard', null)}</label>
+                                <div class="card-number-wrapper">
+                                    <div id="card-number" class="form-control cardNumber"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group required">
+                                <label class="form-control-label" for="card-expiry" data-tid="scwsdk.form.card_expiry_label">${Resource.msg('field.credit.card.expiration', 'creditCard', null)}</label>
+                                <div id="card-expiry" class="form-control"></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group required">
+                                <label class="form-control-label" for="card-cvc" data-tid="scwsdk.form.card_cvc_label">${Resource.msg('field.credit.card.security.code', 'creditCard', null)}</label>
+                                <button type="button" class="info-icon">
+                                    <span class="icon" aria-hidden="true">i</span>
+                                    <span class="sr-only">${Resource.msg('button.help.assistive.text','common',null)}</span>
+                                    <span class="tooltip d-none">
+                                        ${Resource.msg('tooltip.security.code','creditCard',null)}
+                                    </span>
+                                </button>
+
+                                <div id="card-cvc" class="form-control securityCode"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <isif condition="${pdict.customer.registeredUser}">
+                        <button class="btn btn-block cancel-new-payment btn-outline-primary ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}" type="button">${Resource.msg('button.back.to.stored.payments', 'checkout', null)}</button>
+                    </isif>
+                </fieldset>
+
+                </div>
+            </div>
+        </div>
+    </isif>
+</div>

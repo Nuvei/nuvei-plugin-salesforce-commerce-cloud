@@ -1,0 +1,7 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var redirection = '<isprint value="${pdict.redirect}" encoding="htmlsinglequote" />';
+        redirection = redirection.replaceAll('&amp;','&');
+        window.parent.location.href = redirection;
+    });
+</script>

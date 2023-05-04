@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="int.nuvei.deleteUPO.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/deleteUPO.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getMerchantPaymentMethods.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/getMerchantPaymentMethods.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getPaymentStatus.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/getPaymentStatus.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getSessionToken.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/getSessionToken.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getUserUPO.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/getUserUPOs.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.openOrder.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/openOrder.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.refundTransaction.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/refundTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.settleTransaction.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/settleTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.voidTransaction.TEST">
+        <url>https://ppp-test.safecharge.com/ppp/api/v1/voidTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.deleteUPO.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/deleteUPO.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getMerchantPaymentMethods.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/getMerchantPaymentMethods.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getPaymentStatus.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/getPaymentStatus.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getSessionToken.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/getSessionToken.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.getUserUPO.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/getUserUPOs.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.openOrder.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/openOrder.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.refundTransaction.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/refundTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.settleTransaction.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/settleTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="int.nuvei.voidTransaction.LIVE">
+        <url>https://secure.safecharge.com/ppp/api/v1/voidTransaction.do</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-profile service-profile-id="int_nuvei">
+        <timeout-millis>10000</timeout-millis>
+        <rate-limit-enabled>true</rate-limit-enabled>
+        <rate-limit-calls>5</rate-limit-calls>
+        <rate-limit-millis>5000</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>10</cb-calls>
+        <cb-millis>60000</cb-millis>
+    </service-profile>
+
+    <service service-id="int.nuvei.deleteUPO">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.deleteUPO.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.getMerchantPaymentMethods">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.getMerchantPaymentMethods.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.getPaymentStatus">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.getPaymentStatus.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.getSessionToken">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.getSessionToken.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.getUserUPO">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.getUserUPO.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.openOrder">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.openOrder.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.refundTransaction">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.refundTransaction.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.settleTransaction">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.settleTransaction.TEST</credential-id>
+    </service>
+
+    <service service-id="int.nuvei.voidTransaction">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Nuvei</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>int_nuvei</profile-id>
+        <credential-id>int.nuvei.voidTransaction.TEST</credential-id>
+    </service>
+
+</services>

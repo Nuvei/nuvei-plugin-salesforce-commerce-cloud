@@ -1,0 +1,129 @@
+@import "variables";
+
+/*********** base Nuvei Fields styles ************/
+.SfcField {
+    border: 0.063rem solid $dark-gray;
+    box-sizing: border-box;
+    height: 2rem;
+    padding: 0.7em 0.5em;
+    text-indent: 0;
+    width: 100%;
+}
+
+.sfc-cvc .field-wrapper {
+    width: 3.438rem;
+}
+
+.sfc-logo {
+    display: flex;
+    align-items: center;
+}
+
+.sfc-logo-img {
+    display: block;
+    height: 2.5rem;
+
+    + .sfc-name {
+        display: none;
+    }
+}
+
+.sfc-input.field-wrapper {
+    display: none;
+
+    @media screen and (min-width: 768px) {
+        padding-left: 0;
+        padding-right: 2%;
+        margin-top: 0.5rem;
+    }
+
+    .sfc-check-input:checked ~ & {
+        display: block;
+    }
+}
+
+.label-inline .sfc-input {
+    @media screen and (max-width: 768px) {
+        width: 76%;
+    }
+}
+
+.label-inline input[type="radio"].sfc-check-input {
+    float: left;
+    margin-top: 0.875rem;
+}
+
+.sfc-hidden {
+    display: none;
+}
+
+/************* text boxes styles ****************/
+
+/* box when a validation error */
+.sfc-invalid {
+    background-color: $tutu;
+    border-color: $sangria;
+    color: $sangria;
+}
+
+/*********** base Nuvei 3D-Secure mode styles ************/
+.Modal.fade .sfcModal-dialog {
+    transform: translate(0, -25%);
+    transition: all 0.3s ease-out;
+    opacity: 0;
+}
+
+.Modal.is-in .sfcModal-dialog {
+    transform: translate(0, 0);
+    opacity: 1;
+}
+
+.sfcModal-header {
+    height: 1.5rem;
+}
+
+.sfcModal-dialog {
+    margin: 3.438rem auto;
+    max-width: 30.75rem;
+    position: relative;
+    width: auto;
+}
+
+.sfcModal-content {
+    position: relative;
+    background-color: #fff;
+    background-clip: padding-box;
+    outline: 0;
+    border: 0.063rem solid #dfdfdf;
+}
+
+.sfcModal-close {
+    font-size: 0.9rem;
+    color: #2c2a2a;
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.sfcIcon--close::before {
+    content: "2716";
+}
+
+[class*=" sfcIcon--"]::before,
+[class^=sfcIcon--]::before {
+    speak-as: none;
+    font-style: normal;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.sfcModal-body {
+    -webkit-overflow-scrolling: touch;
+}

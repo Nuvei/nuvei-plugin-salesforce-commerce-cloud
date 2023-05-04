@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+
+    <type-extension type-id="Basket">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="nuveiAuthCode">
+                <display-name xml:lang="x-default">Auth Code</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantUniqueID">
+                <display-name xml:lang="x-default">Merchant Unique ID</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiSessionToken">
+                <display-name xml:lang="x-default">Session Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiTransactionID">
+                <display-name xml:lang="x-default">Transaction ID</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiResponseToHash">
+                <display-name xml:lang="x-default">nuveiResponseToHash</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="nuveiAuthCode">
+                <display-name xml:lang="x-default">Auth Code</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantUniqueID">
+                <display-name xml:lang="x-default">Merchant Unique ID</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiSessionToken">
+                <display-name xml:lang="x-default">Session Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiTransactionID">
+                <display-name xml:lang="x-default">Transaction ID</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiResponseToHash">
+                <display-name xml:lang="x-default">nuveiResponseToHash</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Nuvei">
+                <display-name xml:lang="x-default">Nuvei</display-name>
+                <attribute attribute-id="nuveiMerchantUniqueID"/>
+                <attribute attribute-id="nuveiSessionToken"/>
+                <attribute attribute-id="nuveiTransactionID"/>
+                <attribute attribute-id="nuveiAuthCode"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="nuveiEnabled">
+                <display-name xml:lang="x-default">Enabled</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiEnvironment">
+                <display-name xml:lang="x-default">Environment</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Test</display>
+                        <value>test</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Production</display>
+                        <value>prod</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantID">
+                <display-name xml:lang="x-default">Merchant ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantName">
+                <display-name xml:lang="x-default">Merchant Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantPhone">
+                <display-name xml:lang="x-default">Merchant Phone</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantSecretKey">
+                <display-name xml:lang="x-default">Merchant Secret Key</display-name>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiMerchantSiteID">
+                <display-name xml:lang="x-default">Merchant Site ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiRedirectMode">
+                <display-name xml:lang="x-default">Redirect Mode</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Hosted Page</display>
+                        <value>Hosted Page</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Direct</display>
+                        <value>Direct</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiRedirectType">
+                <display-name xml:lang="x-default">Redirect Type</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">iFrame</display>
+                        <value>iFrame</value>
+                    </value-definition>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">redirect</display>
+                        <value>redirect</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="nuveiTransactionType">
+                <display-name xml:lang="x-default">Transaction Type</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Sale – Performs a regular payment request</display>
+                        <value>Sale</value>
+                    </value-definition>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Auth – Performs an authorization-only request</display>
+                        <value>Auth</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PreAuth – Performs an authorization-only request (with a longer settlement period)</display>
+                        <value>PreAuth</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Nuvei Configuration">
+                <display-name xml:lang="x-default">Nuvei Configuration</display-name>
+                <attribute attribute-id="nuveiEnabled"/>
+                <attribute attribute-id="nuveiEnvironment"/>
+                <attribute attribute-id="nuveiMerchantID"/>
+                <attribute attribute-id="nuveiMerchantSiteID"/>
+                <attribute attribute-id="nuveiMerchantSecretKey"/>
+                <attribute attribute-id="nuveiTransactionType"/>
+                <attribute attribute-id="nuveiRedirectMode"/>
+                <attribute attribute-id="nuveiRedirectType"/>
+                <attribute attribute-id="nuveiMerchantName"/>
+                <attribute attribute-id="nuveiMerchantPhone"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+</metadata>

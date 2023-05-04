@@ -1,0 +1,14 @@
+<!--- applicable credit cards--->
+<div class="tab-pane active nuvei-content" id="nuvei-content" role="tabpanel">
+    <fieldset class="payment-form-fields">
+
+        <!--- payment method is credit card --->
+        <input type="hidden" class="form-control" id="selectedPaymentOption"
+               name="${pdict.forms.billingForm.paymentMethod.htmlName}"
+               value="NUVEI"
+        />
+
+        <isinclude template="checkout/billing/nuveiForm" />
+
+    </fieldset>
+</div>

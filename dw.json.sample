@@ -1,0 +1,6 @@
+{
+    "version": "YOUR_CODEVERSION",
+    "hostname": "YOUR_SANDBOX_DOMAIN",
+    "username": "YOUR_SFCC_LOGIN",
+    "password": "YOUR_SFCC_PASSWORD"
+}

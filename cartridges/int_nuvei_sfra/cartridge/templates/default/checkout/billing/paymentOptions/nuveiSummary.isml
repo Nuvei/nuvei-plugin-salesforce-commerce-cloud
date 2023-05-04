@@ -1,0 +1,5 @@
+<div id="nuveiSummary">
+    <div class="credit-card-type">
+        <span>${Resource.msg('msg.payment.type.nuvei', 'nuvei', null)}</span>
+    </div>
+</div>

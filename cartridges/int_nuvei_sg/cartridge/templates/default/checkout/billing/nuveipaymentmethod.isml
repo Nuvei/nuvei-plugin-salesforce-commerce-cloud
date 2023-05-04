@@ -1,0 +1,129 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment> TEMPLATENAME: nuvneipaymentmethod.isml </iscomment>
+<isinclude template="util/modules"/>
+
+<isset name="redirectSettings" value="${require('*/cartridge/scripts/util/nuveiHelperHosted').getRedirectSettings()}" scope="page" />
+<isset name="nuveiPrefs" value="${require('*/cartridge/scripts/nuveiPreferences')}" scope="page" />
+
+<isif condition="${!empty(pdict.errorMessage)}">
+    <div class="billing-error">${pdict.errorMessage}</div>
+</isif>
+
+<isif condition="${redirectSettings.mode === 'Hosted Page'}">
+    <isif condition="${redirectSettings.type==='iFrame'}">
+        <isprint value="${Resource.msg('msg.payment.submitpayment', 'nuvei', null)}" encoding="htmlcontent" />
+    <iselseif condition="${redirectSettings.type==='redirect'}" />
+        <isprint value="${Resource.msg('msg.payment.redirect', 'nuvei', null)}" encoding="htmlcontent" />
+    </isif>
+<iselseif condition="${redirectSettings.mode === 'Direct'}" />
+    <link href="${URLUtils.staticURL('/css/nuvei.css')}" rel="stylesheet" />
+    <script src="https://cdn.safecharge.com/safecharge_resources/v1/websdk/safecharge.js"></script>
+
+    <div class="SfcFields js-nuvei-fields"
+            data-environment="${nuveiPrefs.getEnvironment()}"
+            data-merchant-id="${nuveiPrefs.getMerchantId()}"
+            data-merchant-site-id="${nuveiPrefs.getMerchantSiteId()}"
+            data-session-token="${pdict.nuveiSessionToken}"
+            data-payment-not-valid="${Resource.msg('error.payment.not.valid', 'checkout', null)}"
+            data-order-open-url="${URLUtils.https('Nuvei-OrderOpen')}"
+            data-place-order-url="${URLUtils.https('COSummary-Submit')}">
+        <div class="error-message"></div>
+        <div class="js-nuvei-payment-methods">
+            <div class="form-row form-indent label-inline">
+                <div class="field-wrapper">
+                    <input type="radio"
+                        name="${pdict.CurrentForms.billing.paymentMethods.nuveiFields.paymentOption.getHtmlName()}"
+                        value="cc_card"
+                        id="card-form"
+                        checked='checked' />
+                </div>
+                <label for="card-form">${Resource.msg('title.payment.creditcard', 'nuvei', null)}</label>
+            </div>
+            <isif condition="${pdict.CurrentCustomer.authenticated && !empty(pdict.ApplicableCreditCards)}">
+                <div class="form-row">
+                    <label class="label">${Resource.msg('billing.selectcreditcard','checkout',null)}</label>
+                    <div class="field-wrapper">
+                        <select name="nuveiCardList" id="nuveiCardList" class="input-select">
+                            <option value="NEW_CREDIT_CARD" selected="selected">${Resource.msg('billing.creditcardlistselect','checkout',null)}</option>
+                            <isloop items="${pdict.ApplicableCreditCards}" var="creditCardInstr">
+                                <option value="${creditCardInstr.creditCardToken}">
+                                    (<isprint value="${creditCardInstr.creditCardType}"/>)
+                                    <isprint value="${creditCardInstr.creditCardHolder}"/>
+                                    <isprint value="${creditCardInstr.maskedCreditCardNumber}"/>
+                                     - ${Resource.msg('billing.creditcardlistexp','checkout',null)}
+                                     <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" />
+                                </option>
+                            </isloop>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row sfc-cvc required js-nuvei-saved-card-cvc sfc-hidden">
+                    <label for="saved-card-cvc">
+                        <span class="required-indicator">&#8226;</span>
+                        <span>${Resource.msg('creditcard.cvnlabel', 'forms', null)}</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input class="input-text" type="text" id="saved-card-cvc" name="saved-card-cvc" />
+                    </div>
+                    <div class="form-field-tooltip">
+                        <a href="${URLUtils.url('Page-Show','cid', 'checkout-security-code')}" class="tooltip">
+                            ${Resource.msg('billing.linkcvn', 'checkout', null)}
+
+                            <div class="tooltip-content" data-layout="small">
+                                <iscontentasset aid="checkout-security-code"/>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </isif>
+            <div class="js-nuvei-new-card">
+                <div class="form-row required">
+                    <label for="cardHolderName">
+                        <span class="required-indicator">&#8226;</span>
+                        <span>${Resource.msg('field.credit.card.holdername', 'creditCard', null)}</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <input type="text" class="input-text SfcField js-nuvei-holder-name" id="cardHolderName" />
+                    </div>
+                </div>
+                <div class="form-row required">
+                    <label for="card-number" data-tid="scwsdk.form.card_number_label">
+                        <span class="required-indicator">&#8226;</span>
+                        <span>${Resource.msg('creditcard.number','forms',null)}</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <div id="card-number" class="input-text"></div>
+                    </div>
+                    <div class="form-caption">${Resource.msg('creditcard.numberexample', 'forms', null)}</div>
+                </div>
+                <div class="form-row required">
+                    <label for="card-expiry" data-tid="scwsdk.form.card_expiry_label">
+                        <span class="required-indicator">&#8226;</span>
+                        <span>${Resource.msg('billing.creditcardlistexp', 'checkout', null)}</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <div id="card-expiry" class="input-text"></div>
+                    </div>
+                </div>
+                <div class="form-row sfc-cvc required">
+                    <label for="card-cvc" data-tid="scwsdk.form.card_cvc_label">
+                        <span class="required-indicator">&#8226;</span>
+                        <span>${Resource.msg('creditcard.cvnlabel', 'forms', null)}</span>
+                    </label>
+                    <div class="field-wrapper">
+                        <div id="card-cvc" class="input-text"></div>
+                    </div>
+                    <div class="form-field-tooltip">
+                        <a href="${URLUtils.url('Page-Show','cid', 'checkout-security-code')}" class="tooltip">
+                            ${Resource.msg('billing.linkcvn', 'checkout', null)}
+
+                            <div class="tooltip-content" data-layout="small">
+                                <iscontentasset aid="checkout-security-code"/>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</isif>
