@@ -67,6 +67,7 @@ const setMainAttributes = function (params) {
     paramsInObject.error_url = URLS.ERROR;
     paramsInObject.pending_url = URLS.PENDING;
     paramsInObject.back_url = URLS.BACK;
+	paramsInObject.isNative = nuveiPrefs.getIsNative() ? 1 : 0;
 
     return paramsInObject;
 };

@@ -171,6 +171,8 @@ const openOrder = function (params) {
         clientUniqueId: orderNo,
         currency: params.currency,
         amount: params.amount,
+        sourceApplication: "SFCC_PLUGIN",
+        webMasterId: nuveiPrefs.getPluginVersion(),
         transactionType: nuveiPrefs.getTransactionType(),
         deviceDetails: {
             ipAddress: request.getHttpRemoteAddress() // eslint-disable-line

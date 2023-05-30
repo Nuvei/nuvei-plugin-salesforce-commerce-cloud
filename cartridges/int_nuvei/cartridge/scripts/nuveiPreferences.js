@@ -15,6 +15,8 @@ const prefKeys = {
     transactionType: 'nuveiTransactionType',
     redirectMode: 'nuveiRedirectMode',
     redirectType: 'nuveiRedirectType',
+    isNative: 'nuveiIsNative',
+    pluginVersion: 'nuveiVersion',
 };
 
 module.exports = {
@@ -47,5 +49,11 @@ module.exports = {
     },
     getRedirectType: function () {
         return customSitePrefs[prefKeys.redirectType].value;
+    },
+    getIsNative: function () {
+        return customSitePrefs[prefKeys.isNative].value;
+    },
+    getPluginVersion: function () {
+        return customSitePrefs[prefKeys.pluginVersion].value;
     },
 };

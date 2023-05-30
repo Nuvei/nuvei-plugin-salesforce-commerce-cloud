@@ -193,6 +193,20 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+			 <attribute-definition attribute-id="nuveiIsNative">
+                <display-name xml:lang="x-default">Force APM to redirect</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="nuveiVersion">
+                <display-name xml:lang="x-default">Plugin Version</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>21.1.0</default-value>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Nuvei Configuration">
@@ -207,6 +221,8 @@
                 <attribute attribute-id="nuveiRedirectType"/>
                 <attribute attribute-id="nuveiMerchantName"/>
                 <attribute attribute-id="nuveiMerchantPhone"/>
+				<attribute attribute-id="nuveiIsNative"/>
+				<attribute attribute-id="nuveiVersion"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
