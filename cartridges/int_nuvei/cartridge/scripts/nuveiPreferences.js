@@ -51,7 +51,7 @@ module.exports = {
         return customSitePrefs[prefKeys.redirectType].value;
     },
     getIsNative: function () {
-        return customSitePrefs[prefKeys.isNative].value;
+        return customSitePrefs[prefKeys.isNative];
     },
     getPluginVersion: function () {
         return customSitePrefs[prefKeys.pluginVersion].value;

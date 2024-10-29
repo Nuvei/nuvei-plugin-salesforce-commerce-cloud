@@ -193,7 +193,7 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
-			 <attribute-definition attribute-id="nuveiIsNative">
+			<attribute-definition attribute-id="nuveiIsNative">
                 <display-name xml:lang="x-default">Force APM to redirect</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
