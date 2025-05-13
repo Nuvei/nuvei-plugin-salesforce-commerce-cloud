@@ -3,7 +3,12 @@
 
 <div class="form-group nuvei-form-content" id="nuvei-group"
     data-getdata-url="${redirectSettings.getDataUrl}"
-    data-mode="${redirectSettings.mode}">
+    data-mode="${redirectSettings.mode}"
+    data-error-message="${pdict.errorMessage}"
+    data-nuvei-hosted-page-mode="${redirectSettings.mode === 'Hosted Page'}"
+    data-nuvei-redirect-type="${redirectSettings.type}"
+    data-nuvei-redirect-url="${URLUtils.url(redirectSettings.type === 'redirect' ? 'Nuvei-Redirect' : 'Nuvei-ShowIframe').toString()}"
+    data-toggle="modal" data-target="#nuveiModal">
     <isif condition="${redirectSettings.mode==='Hosted Page'}">
         <isif condition="${redirectSettings.type==='iFrame'}">
             <isprint value="${Resource.msg('msg.payment.submitpayment', 'nuvei', null)}" encoding="htmlcontent" />

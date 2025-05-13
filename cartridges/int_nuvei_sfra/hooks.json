@@ -7,10 +7,6 @@
         {
             "name": "app.payment.form.processor.nuvei",
             "script": "./cartridge/scripts/hooks/payment/processor/nuvei_form_processor"
-        },
-        {
-            "name": "app.post.auth",
-            "script": "./cartridge/scripts/hooks/postAuthorizationHandling"
         }
     ]
 }

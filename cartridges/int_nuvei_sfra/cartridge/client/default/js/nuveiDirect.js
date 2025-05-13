@@ -300,7 +300,7 @@ Sfch.prototype.getPaymentOption = function () {
     let paymentOption = {};
     if (this.selectedPaymentMethod === this.CREDIT_CARD_FIELD_NAME) {
         if (this.$creditCardForm.hasClass('checkout-hidden') && this.$savedPayments.length > 0) {
-            const $selectedPayment = $('.saved-payment-instrument.selected-payment');
+            const $selectedPayment = $('.js-nuvei-credit-card .saved-payment-instrument.selected-payment');
             paymentOption = {
                 userPaymentOptionId: $selectedPayment.data('savedToken'),
                 card: {
@@ -359,12 +359,53 @@ module.exports.initialize = function () {
 
     $placeOrderBtn.on('click', function (evt) {
         if (!$placeOrderBtn.hasClass(NUVEI_CREATE_PAYMENT_BTN)) {
+            // disable the placeOrder button here
+            $('body').trigger('checkout:disableButton', '.next-step-button button');
+            $.ajax({
+                url: $('.place-order').data('action'),
+                method: 'POST',
+                success: function (data) {
+                    // enable the placeOrder button here
+                    $('body').trigger('checkout:enableButton', '.next-step-button button');
+                    if (data.error) {
+                        if (data.cartError) {
+                            window.location.href = data.redirectUrl;
+                        }
+                    } else {
+                        var redirect = $('<form>')
+                            .appendTo(document.body)
+                            .attr({
+                                method: 'GET',
+                                action: data.continueUrl
+                            });
+
+                        $('<input>')
+                            .appendTo(redirect)
+                            .attr({
+                                name: 'ID',
+                                value: data.orderID
+                            });
+
+                        $('<input>')
+                            .appendTo(redirect)
+                            .attr({
+                                name: 'token',
+                                value: data.orderToken
+                            });
+
+                        redirect.trigger('submit');
+                    }
+                },
+                error: function () {
+                    // enable the placeOrder button here
+                    $('body').trigger('checkout:enableButton', $('.next-step-button button'));
+                }
+            });
             return;
         }
 
         evt.stopPropagation();
 
-        const email = $('.form-control.email').val();
         const country = $('.addressSelector.form-control option[selected]').data().countryCode;
 
         const config = $('.js-nuvei-fields').data();
@@ -377,6 +418,8 @@ module.exports.initialize = function () {
                     sfch.showError(config.paymentNotValid);
                     return;
                 }
+
+                const email = resOrderCreate.email;
 
                 const paymentParams = {
                     sessionToken: resOrderCreate.sessionToken,

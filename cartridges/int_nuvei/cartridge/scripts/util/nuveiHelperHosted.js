@@ -3,6 +3,7 @@
 const Calendar = require('dw/util/Calendar');
 const StringUtils = require('dw/util/StringUtils');
 const URLUtils = require('dw/web/URLUtils');
+var OrderMgr = require('dw/order/OrderMgr');
 
 const nuveiPrefs = require('*/cartridge/scripts/nuveiPreferences');
 const checksumHelper = require('*/cartridge/scripts/util/nuveiChecksumHelper');
@@ -51,16 +52,17 @@ function getDeviceType() {
 }
 
 const setMainAttributes = function (params) {
-    const currentBasket = params.basket;
+    const lineItemCtnr = params.lineItemCtnr ;
     let paramsInObject = params.addTo;
     // credentials
     paramsInObject.merchant_id = nuveiPrefs.getMerchantId();
     paramsInObject.merchant_site_id = nuveiPrefs.getMerchantSiteId();
     // common attributes
     paramsInObject.time_stamp = StringUtils.formatCalendar(new Calendar(), TIMESTAMP_FORMAT);
-    paramsInObject.currency = currentBasket.getCurrencyCode();
+    paramsInObject.currency = lineItemCtnr.getCurrencyCode();
     paramsInObject.encoding = ENCODING_UTF8;
     paramsInObject.version = NUVEI_VERSION;
+
     // urls
     paramsInObject.notify_url = URLS.NOTIFY;
     paramsInObject.success_url = URLS.SUCCESS;
@@ -78,8 +80,8 @@ const roundNumber = function (numb) {
 
 const setBasketValues = function (params) {
     const TaxMgr = require('dw/order/TaxMgr');
-    const currentBasket = params.basket;
-    const productLineItems = currentBasket.getProductLineItems();
+    const lineItemCtnr = params.lineItemCtnr;
+    const productLineItems = lineItemCtnr.getProductLineItems();
     const productLineItemsIterator = productLineItems.iterator();
     let paramsInObject = params.addTo;
     let productIdentifierNumber = 1;
@@ -98,9 +100,9 @@ const setBasketValues = function (params) {
     }
 
     paramsInObject.numberofitems = productLineItems.getLength();
-    paramsInObject.shipping = currentBasket.getAdjustedShippingTotalPrice().getValue();
-    const totalGrossPriceMoney = currentBasket.getTotalGrossPrice();
-    const totalTaxMoney = currentBasket.getTotalTax();
+    paramsInObject.shipping = lineItemCtnr.getAdjustedShippingTotalPrice().getValue();
+    const totalGrossPriceMoney = lineItemCtnr.getTotalGrossPrice();
+    const totalTaxMoney = lineItemCtnr.getTotalTax();
     const subtotalMoney = totalGrossPriceMoney.subtract(totalTaxMoney);
 
     // calculate taxation
@@ -109,7 +111,7 @@ const setBasketValues = function (params) {
         calculatedAmount += totalTaxMoney.getValue();
     }
 
-    paramsInObject.total_amount = currentBasket.getTotalGrossPrice().getValue();
+    paramsInObject.total_amount = lineItemCtnr.getTotalGrossPrice().getValue();
     paramsInObject.merchant_unique_id = nuveiHelper.getOrderNo();
 
     calculatedAmount += paramsInObject.shipping;
@@ -129,12 +131,12 @@ const setBasketValues = function (params) {
 const saveBillingInBasket = function (params) {
     // save billing info into the basket
     const Transaction = require('dw/system/Transaction');
-    const currentBasket = params.basket;
+    const lineItemCtnr = params.lineItemCtnr;
     const billingInfo = params.billingInfo;
-    const billingAddress = currentBasket.billingAddress;
+    const billingAddress = lineItemCtnr.billingAddress;
     Transaction.wrap(function () {
         if (!billingAddress) {
-            billingAddress = currentBasket.createBillingAddress();
+            billingAddress = lineItemCtnr.createBillingAddress();
         }
 
         billingAddress.setFirstName(billingInfo.address.firstName);
@@ -149,16 +151,16 @@ const saveBillingInBasket = function (params) {
         billingAddress.setCountryCode(billingInfo.address.countryCode);
 
         billingAddress.setPhone(billingInfo.contact.phone);
-        currentBasket.setCustomerEmail(billingInfo.contact.email);
+        lineItemCtnr.setCustomerEmail(billingInfo.contact.email);
     });
 };
 
 const setCustomerValues = function (params) {
-    const currentBasket = params.basket;
-    const basketCustomer = currentBasket.getCustomer();
+    const lineItemCtnr = params.lineItemCtnr;
+    const basketCustomer = lineItemCtnr.getCustomer();
     const countriesWithStates = ['US', 'CA', 'IN'];
     let paramsInObject = params.addTo;
-    let billingAddress = currentBasket.getBillingAddress();
+    let billingAddress = lineItemCtnr.getBillingAddress();
     let userTokenId = '';
 
     if (basketCustomer.isAuthenticated()) {
@@ -190,7 +192,7 @@ const setCustomerValues = function (params) {
     } else {    // use basket saved values
         paramsInObject.first_name = billingAddress.getFirstName();
         paramsInObject.last_name = billingAddress.getLastName();
-        paramsInObject.email = currentBasket.getCustomerEmail();
+        paramsInObject.email = lineItemCtnr.getCustomerEmail();
         paramsInObject.address1 = billingAddress.getAddress1();
         paramsInObject.city = billingAddress.getCity();
         paramsInObject.country = billingAddress.getCountryCode().getValue().toString();
@@ -208,22 +210,31 @@ const setCustomerValues = function (params) {
 
 const getRequestParamsInObject = function (params) {
     const BasketMgr = require('dw/order/BasketMgr');
-    const currentBasket = BasketMgr.getCurrentBasket();
+    var lineItemCtnr = BasketMgr.getCurrentBasket();
+
+    if (!lineItemCtnr) {
+        // If this function is called from Nuvei-Redirect a new
+        // order has already been created to reserve inventory and the
+        // basket has been deleted accordingly. The newly-created
+        // order is used as a line item container
+        lineItemCtnr = OrderMgr.getOrder(params.orderNo);
+    }
+
     let paramsInObject = {};
     // main attributes
     paramsInObject = setMainAttributes({
-        basket: currentBasket,
+        lineItemCtnr: lineItemCtnr,
         addTo: paramsInObject
     });
     // basket
     paramsInObject = setBasketValues({
-        basket: currentBasket,
+        lineItemCtnr: lineItemCtnr,
         addTo: paramsInObject
     });
     // customer
     paramsInObject = setCustomerValues({
         billingInfo: params.billingInfo,
-        basket: currentBasket,
+        lineItemCtnr: lineItemCtnr,
         addTo: paramsInObject
     });
 
@@ -262,9 +273,10 @@ const getRequestURLParams = function (paramsInObject) {
  *
  * @param {boolean} getData - flag to set URL in redirectSettings
  * @param {Object} billingInfo - billing data from storefront
+ * @param {string|null} orderNo - current order number,
  * @return {Object} - redirect settings
 */
-const getRedirectSettings = function (getData, billingInfo) {
+const getRedirectSettings = function (getData, billingInfo, orderNo) {
     let redirectSettings = {
         enabled: false
     };
@@ -297,7 +309,8 @@ const getRedirectSettings = function (getData, billingInfo) {
             // get data
             if (getData) {
                 const paramsInObject = getRequestParamsInObject({
-                    billingInfo: billingInfo // from FE-AJAX, after billing address submit
+                    billingInfo: billingInfo, // from FE-AJAX, after billing address submit
+                    orderNo: orderNo
                 });
                 const urlParams = getRequestURLParams(paramsInObject);
                 redirectSettings.url = REDIRECT_ENDPOINT + '?' + urlParams;
@@ -384,17 +397,17 @@ const handleResponse = function (data) {
     const hash = require('*/cartridge/scripts/util/nuveiChecksumHelper').getRedirectChecksum(stringToHash);
 
     if (data.Status === 'APPROVED' && hash === compare) { // checksum from response is OK
-        // save data for response in basket
-        const currentBasket = BasketMgr.getCurrentBasket();
+        // save data for response in the order object
+        var order = OrderMgr.getOrder(data.merchant_unique_id);
         const transactionType = nuveiPrefs.getTransactionType();
         const transactionId = [transactionType, data.TransactionID].join(' | ');
         const authCode = [transactionType, data.AuthCode].join(' | ');
         const merchantUniqueID = [transactionType, (data.merchant_unique_id || data.ClientUniqueId)].join(' | ');
         Transaction.wrap(function () {
-            currentBasket.custom.nuveiResponseToHash = JSON.stringify(nuveiResponse);
-            currentBasket.custom.nuveiMerchantUniqueID = collectionsHelper.addToSetOfStrings(currentBasket.custom.nuveiMerchantUniqueID, merchantUniqueID);
-            currentBasket.custom.nuveiTransactionID = collectionsHelper.addToSetOfStrings(currentBasket.custom.nuveiTransactionID, transactionId);
-            currentBasket.custom.nuveiAuthCode = collectionsHelper.addToSetOfStrings(currentBasket.custom.nuveiAuthCode, authCode);
+            order.custom.nuveiResponseToHash = JSON.stringify(nuveiResponse);
+            order.custom.nuveiMerchantUniqueID = collectionsHelper.addToSetOfStrings(order.custom.nuveiMerchantUniqueID, merchantUniqueID);
+            order.custom.nuveiTransactionID = collectionsHelper.addToSetOfStrings(order.custom.nuveiTransactionID, transactionId);
+            order.custom.nuveiAuthCode = collectionsHelper.addToSetOfStrings(order.custom.nuveiAuthCode, authCode);
         });
     } else {
         nuveiHelper.logger.error('Payment failed: ' + JSON.stringify(data));

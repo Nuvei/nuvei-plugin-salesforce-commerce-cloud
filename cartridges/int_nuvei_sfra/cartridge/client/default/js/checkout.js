@@ -16,6 +16,38 @@ baseBilling.methods.validateAndUpdateBillingPaymentInstrument = function (order)
     if (!form) return;
 };
 
+/**
+ * Updates payment summary information
+ * @param {Object} order - the order model
+ */
+baseBilling.methods.updatePaymentInformation = function (order) {
+    // update payment details
+    var $paymentSummary = $('.payment-details');
+    var htmlToAppend = '';
+
+    if (order.billing.payment && order.billing.payment.selectedPaymentInstruments
+        && order.billing.payment.selectedPaymentInstruments.length > 0) {
+        const lastSelectedPaymentIdx = order.billing.payment.selectedPaymentInstruments.length - 1;
+        if (!order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].maskedCreditCardNumber) {
+            htmlToAppend += '<span>'
+                + order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].type
+                + '</span>';
+        } else {
+            htmlToAppend += '<span>' + order.resources.cardType + ' '
+                + order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].type
+                + '</span><div>'
+                + order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].maskedCreditCardNumber
+                + '</div><div><span>'
+                + order.resources.cardEnding + ' '
+                + order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].expirationMonth
+                + '/' + order.billing.payment.selectedPaymentInstruments[lastSelectedPaymentIdx].expirationYear
+                + '</span></div>';
+        }
+    }
+
+    $paymentSummary.empty().append(htmlToAppend);
+};
+
 baseBilling.handleCreditCardNumber = function () {
     if ($('.cardNumber').length > 0) {
         cleave.handleCreditCardNumber('.cardNumber', '#cardType');
@@ -55,7 +87,7 @@ $(document).ready(function () {
         $('.credit-card-form').addClass('checkout-hidden');
     });
 
-    const errorMessage = $('js-place-order').data('error-message');
+    const errorMessage = $('.place-order').data('error-message');
 
     if (errorMessage) {
         $('.error-message').show();

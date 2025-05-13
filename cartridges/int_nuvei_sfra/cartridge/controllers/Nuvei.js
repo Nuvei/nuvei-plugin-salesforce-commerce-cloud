@@ -5,12 +5,14 @@ const BasketMgr = require('dw/order/BasketMgr');
 const Transaction = require('dw/system/Transaction');
 const URLUtils = require('dw/web/URLUtils');
 const Resource = require('dw/web/Resource');
+var OrderMgr = require('dw/order/OrderMgr');
 
 const server = require('server');
 const csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 const nuveiServices = require('*/cartridge/scripts/nuveiServices');
 const nuveiHelper = require('*/cartridge/scripts/util/nuveiHelper');
 const nuveiHelperHosted = require('*/cartridge/scripts/util/nuveiHelperHosted');
+var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 
 server.post('DMN', function (req, res, next) {
     let statusCode = 500;
@@ -44,6 +46,7 @@ server.get('OrderOpen', server.middleware.https, function (req, res, next) {
         dataJson.clientRequestId = resOrderOpen.clientRequestId;
         dataJson.clientUniqueId = resOrderOpen.clientUniqueId;
         dataJson.userTokenId = resOrderOpen.userTokenId;
+        dataJson.email = basket.getCustomerEmail();
         dataJson.error = false;
     }
 
@@ -63,6 +66,8 @@ server.post(
         const billingFormErrors = COHelpers.validateBillingForm(paymentForm.addressFields);
         const contactInfoFormErrors = COHelpers.validateFields(paymentForm.contactInfoFields);
         const billingInfo = {};
+
+        const currentBasket = BasketMgr.getCurrentBasket();
 
         const formFieldErrors = [];
         if (Object.keys(billingFormErrors).length) {
@@ -87,7 +92,7 @@ server.post(
             formFieldErrors.push(contactInfoFormErrors);
         } else {
             billingInfo.contact = {
-                email: paymentForm.contactInfoFields.email.value,
+                email: currentBasket.getCustomerEmail(),
                 phone: paymentForm.contactInfoFields.phone.value
             };
         }
@@ -100,19 +105,71 @@ server.post(
     }
 );
 
-server.get('Redirect', function (req, res, next) {
-    const redirectSettings = nuveiHelperHosted.getRedirectSettings(true);
-    res.redirect(redirectSettings.url);
-    next();
+server.post('Redirect', function (req, res, next) {
+    var currentBasket = BasketMgr.getCurrentBasket();
+    if (!currentBasket) {
+        res.json({
+            redirectUrl: URLUtils.url('Cart-Show').toString()
+        });
+        return next();
+    }
+
+    var order = COHelpers.createOrder(currentBasket);
+    if (!order) {
+        res.json({
+            redirectUrl: URLUtils.url('Cart-Show').toString()
+        });
+        return next();
+    }
+
+    res.setViewData({
+        orderID: order.getOrderNo(),
+        orderToken: order.getOrderToken()
+    });
+
+    // Store the orderNo in session storage to enable
+    // recreation of the basket in case of an order failure
+    session.privacy.orderNo = order.orderNo;
+
+    var redirectSettings = nuveiHelperHosted.getRedirectSettings(true, null, order.getOrderNo());
+
+    res.json({
+        redirectUrl: redirectSettings.url
+    });
+    return next();
 });
 
 server.get('ShowIframe', function (req, res, next) {
     const renderTemplateHelper = require('*/cartridge/scripts/renderTemplateHelper');
-    const redirectSettings = nuveiHelperHosted.getRedirectSettings(true);
+
+    var currentBasket = BasketMgr.getCurrentBasket();
+    if (!currentBasket) {
+        res.json({
+            redirectUrl: URLUtils.url('Cart-Show').toString()
+        });
+        return next();
+    }
+
+    var order = COHelpers.createOrder(currentBasket);
+    if (!order) {
+        res.json({
+            redirectUrl: URLUtils.url('Cart-Show').toString()
+        });
+        return next();
+    }
+
+    var orderNo = order.getOrderNo();
+    // Store the orderNo in session storage to enable
+    // recreation of the basket in case of an order failure
+    session.privacy.orderNo = orderNo;
+    const redirectSettings = nuveiHelperHosted.getRedirectSettings(true, null, orderNo);
+    var redirectUrl = redirectSettings.url;
+
     const context = {
         redirectSettings: redirectSettings,
         closeButtonText: Resource.msg('link.quickview.close', 'product', null),
-        enterDialogMessage: Resource.msg('msg.enter.quickview', 'product', null)
+        enterDialogMessage: Resource.msg('msg.enter.quickview', 'product', null),
+        orderNo: orderNo
     };
     const renderedTemplate = renderTemplateHelper.getRenderedHtml(context, 'checkout/billing/nuveiIframe');
 
@@ -127,7 +184,11 @@ server.get('SubmitPayment', function (req, res, next) {
     const nuveiPrefs = require('*/cartridge/scripts/nuveiPreferences');
     const isIframe = nuveiPrefs.getRedirectType() === 'iFrame';
     const data = req.querystring;
-    const url = URLUtils.https('Nuvei-PlaceOrder');
+    var orderNo = data.merchant_unique_id;
+    var url = URLUtils.https('Nuvei-PlaceOrder', 'orderNo', orderNo);
+
+    // Remove orderNo from session
+    nuveiHelper.resetOrderNo();
 
     nuveiHelperHosted.handleResponse(data);
 
@@ -143,9 +204,38 @@ server.get('SubmitPayment', function (req, res, next) {
 });
 
 server.get('Back', function (req, res, next) {
-    res.render('checkout/billing/nuveiIframeResponse', {
-        redirect: URLUtils.https('Checkout-Begin', 'stage', 'placeOrder')
-    });
+    // We are using session storage here because the Nuvei API does
+    // not provide response data in the event of an order failure.
+    var orderNo = req.querystring.orderNo || session.privacy.orderNo;
+    var order = OrderMgr.getOrder(orderNo);
+    var isAjaxCall = req.querystring.ajax === '1';
+
+    if (order) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        if (!isAjaxCall) {
+            res.render('checkout/billing/nuveiIframeResponse', {
+                redirect: URLUtils.https('Checkout-Begin', 'stage', 'placeOrder')
+            });
+        } else {
+            res.json({
+                redirectUrl: URLUtils.https('Checkout-Begin', 'stage', 'placeOrder').toString()
+            });
+        }
+    } else {
+        if (!isAjaxCall) {
+            res.render('checkout/billing/nuveiIframeResponse', {
+                redirect: URLUtils.https('Cart-Show')
+            });
+        } else {
+            res.json({
+                redirectUrl: URLUtils.https('Cart-Show').toString()
+            });
+        }
+    }
+
+    // Remove orderNo from session
+    nuveiHelper.resetOrderNo();
 
     next();
 });
@@ -155,17 +245,21 @@ server.get('PlaceOrder', server.middleware.https, function (req, res, next) {
     const hooksHelper = require('*/cartridge/scripts/helpers/hooks');
     const COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
     const validationHelpers = require('*/cartridge/scripts/helpers/basketValidationHelpers');
+    var addressHelpers = require('*/cartridge/scripts/helpers/addressHelpers');
 
-    const currentBasket = BasketMgr.getCurrentBasket();
+    var orderNo = req.querystring.orderNo;
+    var order = OrderMgr.getOrder(orderNo);
 
-    if (!currentBasket) {
+    if (!order) {
         res.redirect(URLUtils.url('Cart-Show'));
 
         return next();
     }
 
-    const validatedProducts = validationHelpers.validateProducts(currentBasket);
+    var validatedProducts = validationHelpers.validateProducts(order);
     if (validatedProducts.error) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
         res.redirect(URLUtils.url('Cart-Show'));
 
         return next();
@@ -177,83 +271,161 @@ server.get('PlaceOrder', server.middleware.https, function (req, res, next) {
         return next();
     }
 
-    const validationOrderStatus = hooksHelper('app.validate.order', 'validateOrder', currentBasket, require('*/cartridge/scripts/hooks/validateOrder').validateOrder);
+    var validationOrderStatus = hooksHelper('app.validate.order', 'validateOrder', order, require('*/cartridge/scripts/hooks/validateOrder').validateOrder);
     if (validationOrderStatus.error) {
-        nuveiHelper.setErrorMessage(validationOrderStatus.message);
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'placeOrder'));
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(
+            URLUtils.https(
+                'Checkout-Begin',
+                'stage', 'placeOrder',
+                'error', 'true',
+                'errorMessage', validationOrderStatus.message
+            ));
 
         return next();
     }
 
     // Check to make sure there is a shipping address
-    if (currentBasket.defaultShipment.shippingAddress === null) {
-        nuveiHelper.setErrorMessage(Resource.msg('error.no.shipping.address', 'checkout', null));
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'shipping'));
+    if (order.defaultShipment.shippingAddress === null) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(
+            URLUtils.https('Checkout-Begin',
+                'stage', 'shipping',
+                'error', 'true',
+                'errorMessage', Resource.msg('error.no.shipping.address', 'checkout', null)
+            ));
 
         return next();
     }
 
     // Check to make sure billing address exists
-    if (!currentBasket.billingAddress) {
-        nuveiHelper.setErrorMessage(Resource.msg('error.no.billing.address', 'checkout', null));
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'payment'));
+    if (!order.billingAddress) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(
+            URLUtils.https('Checkout-Begin',
+                'stage', 'payment',
+                'error', 'true',
+                'errorMessage', Resource.msg('error.no.billing.address', 'checkout', null)
+            ));
 
         return next();
     }
 
     // Calculate the basket
     Transaction.wrap(function () {
-        basketCalculationHelpers.calculateTotals(currentBasket);
+        basketCalculationHelpers.calculateTotals(order);
     });
 
     // Re-validates existing payment instruments
-    const validPayment = COHelpers.validatePayment(req, currentBasket);
+    var validPayment = COHelpers.validatePayment(req, order);
     if (validPayment.error) {
-        nuveiHelper.setErrorMessage(Resource.msg('error.payment.not.valid', 'checkout', null));
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'payment'));
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(
+            URLUtils.https('Checkout-Begin',
+                'stage', 'payment',
+                'error', 'true',
+                'errorMessage', Resource.msg('error.payment.not.valid', 'checkout', null)
+            ));
 
         return next();
     }
 
     // Re-calculate the payments.
-    const calculatedPaymentTransactionTotal = COHelpers.calculatePaymentTransaction(currentBasket);
+    var calculatedPaymentTransactionTotal = COHelpers.calculatePaymentTransaction(order);
     if (calculatedPaymentTransactionTotal.error) {
-        nuveiHelper.setErrorMessage(Resource.msg('error.technical', 'checkout', null));
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'placeOrder'));
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
 
-        return next();
-    }
-
-    // Creates a new order.
-    const order = COHelpers.createOrder(currentBasket);
-    if (!order) {
-        nuveiHelper.setErrorMessage(Resource.msg('error.technical', 'checkout', null));
-        res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'placeOrder'));
+        res.redirect(
+            URLUtils.https('Checkout-Begin',
+                'stage', 'placeOrder',
+                'error', 'true',
+                'errorMessage', Resource.msg('error.technical', 'checkout', null)
+            ));
 
         return next();
     }
 
     // Handles payment authorization
-    const handlePaymentResult = COHelpers.handlePayments(order, order.orderNo);
+    var handlePaymentResult = COHelpers.handlePayments(order, order.orderNo); // es-lint disable line
 
     // Handle custom processing post authorization
-    const options = {
+    var options = {
         req: req,
         res: res
     };
-    const postAuthCustomizations = hooksHelper('app.post.auth', 'postAuthorization', handlePaymentResult, order, options, require('*/cartridge/scripts/hooks/postAuthorizationHandling').postAuthorization);
-    if (postAuthCustomizations && Object.prototype.hasOwnProperty.call(postAuthCustomizations, 'error')) {
-        res.json(postAuthCustomizations);
 
-        res.redirect(URLUtils.https('Order-Confirm',
-            'ID', order.orderNo,
-            'token', order.orderToken));
+    if (handlePaymentResult.error) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(URLUtils.https('Checkout-Begin',
+            'stage', 'placeOrder',
+            'error', 'true',
+            'errorMessage', Resource.msg('error.technical', 'checkout', null)
+        ));
 
         return next();
     }
 
-    nuveiHelper.setErrorMessage(Resource.msg('error.technical', 'checkout', null));
-    res.redirect(URLUtils.https('Checkout-Begin', 'stage', 'placeOrder'));
+    var fraudDetectionStatus = hooksHelper('app.fraud.detection', 'fraudDetection', order, require('*/cartridge/scripts/hooks/fraudDetection').fraudDetection);
+    if (fraudDetectionStatus.status === 'fail') {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        // fraud detection failed
+        req.session.privacyCache.set('fraudDetectionStatus', true);
+
+        res.redirect(URLUtils.https('Checkout-Begin',
+            'stage', 'payment',
+            'error', 'true',
+            'cartError', 'true',
+            'redirectUrl', URLUtils.url('Error-ErrorCode', 'err', fraudDetectionStatus.errorCode).toString(),
+            'errorMessage', Resource.msg('error.technical', 'checkout', null)
+        ));
+
+        return next();
+    }
+
+    // Places the order
+    var placeOrderResult = COHelpers.placeOrder(order, fraudDetectionStatus);
+    if (placeOrderResult.error) {
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+
+        res.redirect(URLUtils.https('Checkout-Begin',
+            'stage', 'placeOrder',
+            'error', 'true',
+            'errorMessage', Resource.msg('error.technical', 'checkout', null)
+        ));
+        return next();
+    }
+
+    if (req.currentCustomer.addressBook) {
+        // save all used shipping addresses to address book of the logged in customer
+        var allAddresses = addressHelpers.gatherShippingAddresses(order);
+        allAddresses.forEach(function (address) {
+            if (!addressHelpers.checkIfAddressStored(address, req.currentCustomer.addressBook.addresses)) {
+                addressHelpers.saveAddress(address, req.currentCustomer, addressHelpers.generateAddressName(address));
+            }
+        });
+    }
+
+    if (order.getCustomerEmail()) {
+        COHelpers.sendConfirmationEmail(order, req.locale.id);
+    }
+
+    // Reset usingMultiShip after successful Order placement
+    req.session.privacyCache.set('usingMultiShipping', false);
+
+    // TODO: Exposing a direct route to an Order, without at least encoding the orderID
+    //  is a serious PII violation.  It enables looking up every customers orders, one at a
+    //  time.
+    res.redirect(URLUtils.https('Order-Confirm',
+        'error', 'false',
+        'ID', order.orderNo,
+        'token', order.orderToken
+    ));
 
     return next();
 });

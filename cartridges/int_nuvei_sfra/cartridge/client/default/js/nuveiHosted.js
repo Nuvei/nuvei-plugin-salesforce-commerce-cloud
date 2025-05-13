@@ -1,6 +1,6 @@
 module.exports.initialize = function () {
-    const $submitNuveiPayment = $('.js-nuvei-submit-payment-options');
-    const $placeOrderButton = $('.js-place-order');
+    const $submitNuveiPayment = $('.submit-payment');
+    const $placeOrderButton = $('.place-order');
     const $paymentInformation = $('.payment-information');
     const redirectDataUrl = $('#nuvei-group').attr('data-getdata-url');
 
@@ -71,7 +71,7 @@ module.exports.initialize = function () {
     const nuveiResponse = getResponse();
 
     $placeOrderButton.on('click', function (e) {
-        const data = $(this).data();
+        const data = $('#nuvei-group').data();
 
         if ($paymentInformation.data('payment-method-id') !== 'NUVEI' || getCurrentStep(nuveiResponse) === NUVEI_STEPS.SUBMIT_PAYMENT) {
             return;
@@ -81,7 +81,16 @@ module.exports.initialize = function () {
             e.stopPropagation();
 
             if (data.nuveiRedirectType === 'redirect') {
-                window.location.href = data.nuveiRedirectUrl;  // URLUtils.url('Nuvei-Redirect')
+                $.ajax({
+                    url: data.nuveiRedirectUrl,
+                    method: 'POST',
+                    success: function (data) {
+                        window.location = data.redirectUrl;
+                    },
+                    error: function () {
+                        $placeOrderButton.prop('disabled', false);
+                    }
+                });
             } else {
                 getModalHtmlElement();
                 fillModalElement(data.nuveiRedirectUrl);
@@ -137,19 +146,42 @@ module.exports.initialize = function () {
             method: 'GET',
             dataType: 'json',
             success: function (data) {
-                const parsedHtml = parseHtml(data.renderedTemplate);
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    const parsedHtml = parseHtml(data.renderedTemplate);
 
-                $('.modal-body').empty();
-                $('.modal-body').html(parsedHtml.body);
-                $('#nuveiModal .modal-header .close .sr-only').text(data.closeButtonText);
-                $('#nuveiModal .enter-message').text(data.enterDialogMessage);
-                $('#nuveiModal').modal('show');
+                    $('.modal-body').empty();
+                    $('.modal-body').html(parsedHtml.body);
+                    $('#nuveiModal .modal-header .close .sr-only').text(data.closeButtonText);
+                    $('#nuveiModal .enter-message').text(data.enterDialogMessage);
+                    $('#nuveiModal').modal('show');
 
-                $.spinner().stop();
+                    $.spinner().stop();
+                }
+
             },
             error: function () {
                 $.spinner().stop();
             }
         });
     };
+
+    $(document).on('hide.bs.modal', '#nuveiModal', function () {
+        const $nuveiIframeCtnr = $(this).find('.nuvei-iframe-container');
+        const redirectUrl = $nuveiIframeCtnr.length > 0 && $nuveiIframeCtnr.data('redirect-url');
+        const orderNo = $nuveiIframeCtnr.length > 0 && $nuveiIframeCtnr.data('order-no');
+        if (redirectUrl && redirectUrl.length) {
+            $.ajax({
+                url: (redirectUrl + `?ajax=1&orderNo=${orderNo}`),
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.redirectUrl && data.redirectUrl.length) {
+                        window.location.href = data.redirectUrl;
+                    }
+                }
+            });
+        }
+    });
 };
