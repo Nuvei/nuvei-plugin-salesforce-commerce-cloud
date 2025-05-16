@@ -11,15 +11,18 @@ var URLUtils = require('dw/web/URLUtils');
  */
 function getCustomerPaymentInstruments(userPaymentInstruments) {
     var paymentInstruments;
+    var paymentInstrumentList = (userPaymentInstruments instanceof dw.util.Collection) ? userPaymentInstruments.toArray() : userPaymentInstruments;
 
-    paymentInstruments = userPaymentInstruments.map(function (paymentInstrument) {
+    paymentInstruments = paymentInstrumentList.map(function (paymentInstrument) {
+        var ccToken = (paymentInstrument instanceof dw.order.PaymentInstrument) ? paymentInstrument.creditCardToken : paymentInstrument.raw.creditCardToken;
+
         var result = {
             creditCardHolder: paymentInstrument.creditCardHolder,
             maskedCreditCardNumber: paymentInstrument.maskedCreditCardNumber,
             creditCardType: paymentInstrument.creditCardType,
             creditCardExpirationMonth: paymentInstrument.creditCardExpirationMonth,
             creditCardExpirationYear: paymentInstrument.creditCardExpirationYear,
-            token: paymentInstrument.raw.creditCardToken,
+            token: ccToken,
             UUID: paymentInstrument.UUID
         };
 
@@ -46,9 +49,14 @@ function getCustomerPaymentInstruments(userPaymentInstruments) {
 function account(currentCustomer, addressModel, orderModel) {
     parent.call(this, currentCustomer, addressModel, orderModel);
 
-    this.customerPaymentInstruments = currentCustomer.wallet
-        && currentCustomer.wallet.paymentInstruments
-        ? getCustomerPaymentInstruments(currentCustomer.wallet.paymentInstruments)
+    var customerProfile = (currentCustomer instanceof dw.customer.Customer) ? currentCustomer.profile : currentCustomer;
+    var customerWalletPaymentInstruments = customerProfile.wallet && customerProfile.wallet.paymentInstruments;
+    if (!customerWalletPaymentInstruments instanceof Array) {
+        customerWalletPaymentInstruments = customerWalletPaymentInstruments.toArray();
+    }
+
+    this.customerPaymentInstruments = customerWalletPaymentInstruments && customerWalletPaymentInstruments.length
+        ? getCustomerPaymentInstruments(customerWalletPaymentInstruments)
         : null;
 }
 
